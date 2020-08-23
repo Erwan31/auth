@@ -40,14 +40,18 @@ app.post('/api/user/login', (req, res) => {
         if(!user) res.json({message: "User not found"});
 
         // 2
-        bcrypt.compare(req.body.password, user.password, (err, isMatch) => {
-            
-            // 3
+        user.comparePassword(req.body.password, function( err, isMatch){
             if(err) throw err;
-            res.status(200).send(isMatch); 
-        })
+            if(!isMatch) return res.status(400).json({message: 'Wrong PW'});
+            
+            user.generateToken((err, user) =>{
+                if(err) return res.status(400).send(err);
+                res.cookie('auth', user.token).send(user.token).json({message: 'Good PW'});
+            })
+            
+            res.status(200).send(isMatch);
+        });
 
-        
     })
 })
 

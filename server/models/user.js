@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const brcrypt = require('bcrypt');
 const SALT_I = 10;
+const jwt = require('jsonwebtoken');
 
 
 const userSchema = mongoose.Schema({
@@ -15,6 +16,10 @@ const userSchema = mongoose.Schema({
         minlength: 8,
         required: true,
     },
+    token:{
+        type: String,
+        required: true,
+    }
 });
 
 // Intercept data of the schema before saving on DB
@@ -36,6 +41,28 @@ userSchema.pre('save', function(next) {
         next();
     }
 });
+
+userSchema.methods.comparePassword = function(candidatePassword, cb) {
+
+        var user = this;
+    
+        // 2
+        brcrypt.compare(candidatePassword, user.password, (err, isMatch) => {
+            if(err) return cb(err);
+            cb(null, isMatch);
+        });
+}
+
+userSchema.methods.generateToken = function(cb){
+    var user = this;
+    let token = jwt.sign(user._id.toHexString(), 'supersecret');
+
+    user.token = token;
+    user.save( function(err, user){
+        if(err) return cb(err);
+        cb(null,user);
+    })
+}
 
 const User = mongoose.model('User', userSchema);
 module.exports = { User };
