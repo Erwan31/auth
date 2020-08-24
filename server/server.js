@@ -4,8 +4,9 @@ const mongoose = require('mongoose');
 const app = express();
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
+const config = require('./config').get(process.env.NODE_ENV);
 
-mongoose.connect('mongodb://localhost:27017/AuthApp', {
+mongoose.connect( config.DATABASE, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
