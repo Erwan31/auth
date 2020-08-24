@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const app = express();
 const bcrypt = require('bcrypt');
-
+const cookieParser = require('cookie-parser');
 
 mongoose.connect('mongodb://localhost:27017/AuthApp', {
     useNewUrlParser: true,
@@ -13,6 +13,7 @@ mongoose.set('useCreateIndex', true);
 
 // MW
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 // MODEL
 const {User} = require('./models/user'); 
@@ -46,15 +47,42 @@ app.post('/api/user/login', (req, res) => {
             
             user.generateToken((err, user) =>{
                 if(err) return res.status(400).send(err);
-                res.cookie('auth', user.token).send(user.token).json({message: 'Good PW'});
+                console.log('cookie here');
+                res.cookie('auth', user.token).send('ok');
             })
             
-            res.status(200).send(isMatch);
+            //res.status(200).send(isMatch);
         });
 
     })
-})
+});
 
+// Custom MW
+let authenticate = (req, res, next) => {
+    let token = req.cookies.auth;
+    
+    User.findByToken(token, (err, user) =>{
+        if(err) return res.status(400).json({
+            message: 'Bad token'
+        });
+        if(!user) return res.status(401).send('bad');
+        res.status(200).send(user);
+    });
+}
+
+app.get('/api/books', (req, res) =>{
+    let token = req.cookies.auth;
+
+    User.findByToken(token, (err, user) =>{
+        if(err) return res.status(400).json({
+            message: 'Bad token'
+        });
+        if(!user) return res.status(401).send('bad');
+        res.status(200).send(user);
+    });
+    console.log(token);
+    //res.status(200).send('alright');
+})
 
 
 const port = process.env.PORT || 3001;
