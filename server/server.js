@@ -14,6 +14,7 @@ mongoose.set('useCreateIndex', true);
 // MW
 app.use(bodyParser.json());
 app.use(cookieParser());
+const { authenticate } = require('./middleware/authenticate')
 
 // MODEL
 const {User} = require('./models/user'); 
@@ -57,31 +58,14 @@ app.post('/api/user/login', (req, res) => {
     })
 });
 
-// Custom MW
-let authenticate = (req, res, next) => {
-    let token = req.cookies.auth;
-    
-    User.findByToken(token, (err, user) =>{
-        if(err) return res.status(400).json({
-            message: 'Bad token'
-        });
-        if(!user) return res.status(401).send('bad');
-        res.status(200).send(user);
-    });
-}
+app.get('/api/books', authenticate, (req, res) =>{
 
-app.get('/api/books', (req, res) =>{
-    let token = req.cookies.auth;
+    res.send(req.user);
+})
 
-    User.findByToken(token, (err, user) =>{
-        if(err) return res.status(400).json({
-            message: 'Bad token'
-        });
-        if(!user) return res.status(401).send('bad');
-        res.status(200).send(user);
-    });
-    console.log(token);
-    //res.status(200).send('alright');
+app.get('/api/magazines', authenticate, (req, res) =>{
+
+    res.send(req.user);
 })
 
 
