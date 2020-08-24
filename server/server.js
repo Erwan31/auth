@@ -66,6 +66,14 @@ app.get('/api/books', authenticate, (req, res) =>{
 app.get('/api/magazines', authenticate, (req, res) =>{
 
     res.send(req.user);
+
+})
+
+app.get('/api/user/logout',authenticate, (req, res) => {
+    req.user.deleteToken(req.token, (err, user) =>{
+        if(err) return res.status(400).send(err);
+        res.status(200).send('ok');
+    })
 })
 
 
